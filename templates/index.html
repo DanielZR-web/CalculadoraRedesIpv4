@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -80,7 +81,7 @@
             let data = await response.json();
             document.getElementById("resultado").innerText = data.error 
                 ? `Error: ${data.error}` 
-                : `Rango: ${data.red_inicio} - ${data.red_fin}, Broadcast: ${data.broadcast_address}`;
+                : `Rango: ${data.red_inicio} - ${data.red_fin}, Broadcast: ${data.broadcast_address}, Máscara: ${data.mascara}`;
         }
     </script>
 </head>

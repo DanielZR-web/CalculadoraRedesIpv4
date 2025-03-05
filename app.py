@@ -55,10 +55,11 @@ def calcular_rango():
         return jsonify({
             "red_inicio": str(red.network_address),
             "red_fin": str(red.broadcast_address),
-            "broadcast_address": str(red.broadcast_address)
+            "broadcast_address": str(red.broadcast_address),
+            "mascara": str(red.netmask)
         })
     except ValueError:
         return jsonify({"error": "Dirección o prefijo inválido."}), 400
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    app.run(host="0.0.0.0", port=10000

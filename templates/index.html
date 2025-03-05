@@ -81,13 +81,29 @@
             let data = await response.json();
             document.getElementById("resultado").innerText = data.error 
                 ? `Error: ${data.error}` 
-                : `Rango: ${data.red_inicio} - ${data.red_fin}, Broadcast: ${data.broadcast_address}, Máscara: ${data.mascara}`;
+                : `Rango: ${data.red_inicio} - ${data.red_fin}`;
         }
-
-        async function calcularVLSM() {
-            let direccion = document.getElementById("direccion_vlsm").value;
-            let prefijo = document.getElementById("prefijo_vlsm").value;
-            let hosts_requeridos = document.getElementById("hosts_requeridos").value.split(",").map(Number);
-            let response = await fetch(`${API_URL}/calcular_vlsm`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Calculadora de Redes IPv4</h2>
+        
+        <h3>1. Ver tamaño de una red</h3>
+        <input type="number" id="prefijo" placeholder="Ejemplo: 24">
+        <button onclick="calcularRed()">Calcular</button>
+        
+        <h3>2. Crear una red con número de hosts</h3>
+        <input type="number" id="num_hosts" placeholder="Ejemplo: 500">
+        <button onclick="determinarPrefijo()">Calcular</button>
+        
+        <h3>3. Calcular rango de una red</h3>
+        <input type="text" id="direccion" placeholder="Ejemplo: 192.168.1.0">
+        <input type="number" id="prefijo_rango" placeholder="Ejemplo: 24">
+        <button onclick="calcularRango()">Calcular</button>
+        
+        <h3>Resultado:</h3>
+        <p id="resultado"></p>
+    </div>
+</body>
+</html>

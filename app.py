@@ -61,5 +61,31 @@ def calcular_rango():
     except ValueError:
         return jsonify({"error": "Dirección o prefijo inválido."}), 400
 
+# 📌 4. Calcular subredes utilizando VLSM
+@app.route("/calcular_vlsm", methods=["POST"])
+def calcular_vlsm():
+    data = request.json
+    try:
+        direccion = data.get("direccion")
+        prefijo = int(data.get("prefijo"))
+        hosts_requeridos = data.get("hosts_requeridos")
+        red = ipaddress.IPv4Network(f'{direccion}/{prefijo}', strict=False)
+        
+        subredes = []
+        for hosts in sorted(hosts_requeridos, reverse=True):
+            subred_prefijo = 32 - (hosts + 2).bit_length() + 1
+            subred = list(red.subnets(new_prefix=subred_prefijo))[0]
+            subredes.append({
+                "red": str(subred.network_address),
+                "broadcast": str(subred.broadcast_address),
+                "mascara": str(subred.netmask),
+                "prefijo": subred.prefixlen
+            })
+            red = list(red.address_exclude(subred))[0]
+        
+        return jsonify({"subredes": subredes})
+    except ValueError:
+        return jsonify({"error": "Datos inválidos."}), 400
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000
+    app.run(host="0.0.0.0", port=10000)

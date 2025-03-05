@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import ipaddress
 from flask_cors import CORS
+import os
 
 app = Flask(__name__)
 CORS(app)  # Permitir peticiones desde cualquier origen
@@ -53,4 +54,4 @@ def calcular_rango():
 
 if __name__ == "__main__":
      port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+     app.run(host="0.0.0.0", port=port)

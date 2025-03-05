@@ -54,7 +54,8 @@ def calcular_rango():
         red = ipaddress.IPv4Network(f'{direccion}/{prefijo}', strict=False)
         return jsonify({
             "red_inicio": str(red.network_address),
-            "red_fin": str(red.broadcast_address)
+            "red_fin": str(red.broadcast_address),
+            "broadcast_address": str(red.broadcast_address)
         })
     except ValueError:
         return jsonify({"error": "Dirección o prefijo inválido."}), 400

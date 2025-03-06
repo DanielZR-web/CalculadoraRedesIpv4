@@ -1,16 +1,16 @@
+from flask import Flask, request, jsonify, render_template 
+import ipaddress 
 from flask import Flask, request, jsonify, render_template
 import ipaddress
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Permitir peticiones desde cualquier origen
+CORS(app)
 
-# Página principal que carga el HTML
-@app.route("/")
-def home():
-    return render_template("index.html")  # Asegúrate de que index.html está en /templates
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-# 📌 1. Calcular información de la red
 @app.route("/calcular_red", methods=["POST"])
 def calcular_red():
     data = request.json
@@ -27,7 +27,6 @@ def calcular_red():
     except ValueError:
         return jsonify({"error": "Prefijo inválido."}), 400
 
-# 📌 2. Determinar prefijo según número de hosts
 @app.route("/determinar_prefijo", methods=["POST"])
 def determinar_prefijo():
     data = request.json
@@ -44,7 +43,6 @@ def determinar_prefijo():
     except ValueError:
         return jsonify({"error": "Número inválido."}), 400
 
-# 📌 3. Calcular rango de direcciones de una subred
 @app.route("/calcular_rango", methods=["POST"])
 def calcular_rango():
     data = request.json
@@ -58,6 +56,33 @@ def calcular_rango():
         })
     except ValueError:
         return jsonify({"error": "Dirección o prefijo inválido."}), 400
+
+@app.route("/calcular_vlsm", methods=["POST"])
+def calcular_vlsm():
+    data = request.json
+    try:
+        red_base = data.get("red_base")
+        subredes = sorted([int(h) for h in data.get("subredes")], reverse=True)
+        
+        resultados = []
+        ip_actual = ipaddress.IPv4Network(f'{red_base}/32', strict=False).network_address
+        
+        for num_hosts in subredes:
+            for i in range(32, 0, -1):
+                red = ipaddress.IPv4Network(f'{ip_actual}/{i}', strict=False)
+                if red.num_addresses - 2 >= num_hosts:
+                    resultados.append({
+                        "subred": str(red.network_address),
+                        "prefijo": i,
+                        "mascara": str(red.netmask),
+                        "rango": f"{red.network_address} - {red.broadcast_address}"
+                    })
+                    ip_actual = red.broadcast_address + 1
+                    break
+        
+        return jsonify(resultados)
+    except ValueError:
+        return jsonify({"error": "Datos inválidos."}), 400
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)

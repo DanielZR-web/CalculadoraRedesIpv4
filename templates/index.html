@@ -42,46 +42,50 @@
         }
     </style>
     <script>
-        const API_URL = "https://calculadoraredesipv4.onrender.com"; // Reemplaza con la URL de tu API en Render
-
         async function calcularRed() {
             let prefijo = document.getElementById("prefijo").value;
-            let response = await fetch(`${API_URL}/calcular_red`, {
+            let response = await fetch("/calcular_red", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ prefijo })
             });
             let data = await response.json();
-            document.getElementById("resultado").innerText = data.error 
-                ? `Error: ${data.error}` 
-                : `Total Hosts: ${data.total_hosts}, Utilizables: ${data.hosts_utilizables}, Máscara: ${data.mascara}`;
+            document.getElementById("resultado").innerText = `Total Hosts: ${data.total_hosts}, Utilizables: ${data.hosts_utilizables}, Máscara: ${data.mascara}`;
         }
 
         async function determinarPrefijo() {
             let num_hosts = document.getElementById("num_hosts").value;
-            let response = await fetch(`${API_URL}/determinar_prefijo`, {
+            let response = await fetch("/determinar_prefijo", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ num_hosts })
             });
             let data = await response.json();
-            document.getElementById("resultado").innerText = data.error 
-                ? `Error: ${data.error}` 
-                : `Prefijo Necesario: /${data.prefijo}, Máscara: ${data.mascara}`;
+            document.getElementById("resultado").innerText = `Prefijo Necesario: /${data.prefijo}, Máscara: ${data.mascara}`;
         }
 
         async function calcularRango() {
             let direccion = document.getElementById("direccion").value;
             let prefijo = document.getElementById("prefijo_rango").value;
-            let response = await fetch(`${API_URL}/calcular_rango`, {
+            let response = await fetch("/calcular_rango", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ direccion, prefijo })
             });
             let data = await response.json();
-            document.getElementById("resultado").innerText = data.error 
-                ? `Error: ${data.error}` 
-                : `Rango: ${data.red_inicio} - ${data.red_fin}`;
+            document.getElementById("resultado").innerText = `Rango: ${data.red_inicio} - ${data.red_fin}`;
+        }
+
+        async function calcularVLSM() {
+            let direccion = document.getElementById("direccion_base").value;
+            let hosts = document.getElementById("hosts_subredes").value.split(',').map(Number);
+            let response = await fetch("/calcular_vlsm", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ direccion, hosts })
+            });
+            let data = await response.json();
+            document.getElementById("resultado").innerText = JSON.stringify(data, null, 2);
         }
     </script>
 </head>
@@ -102,8 +106,13 @@
         <input type="number" id="prefijo_rango" placeholder="Ejemplo: 24">
         <button onclick="calcularRango()">Calcular</button>
         
+        <h3>4. Calcular VLSM</h3>
+        <input type="text" id="direccion_base" placeholder="Ejemplo: 192.168.1.0">
+        <input type="text" id="hosts_subredes" placeholder="Ejemplo: 50,20,10">
+        <button onclick="calcularVLSM()">Calcular VLSM</button>
+        
         <h3>Resultado:</h3>
-        <p id="resultado"></p>
+        <pre id="resultado"></pre>
     </div>
 </body>
 </html>

@@ -46,42 +46,42 @@
 
         async function calcularRed() {
             let prefijo = document.getElementById("prefijo").value;
-            let response = await fetch(${API_URL}/calcular_red, {
+            let response = await fetch(`${API_URL}/calcular_red`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ prefijo })
             });
             let data = await response.json();
             document.getElementById("resultado").innerText = data.error 
-                ? Error: ${data.error} 
-                : Total Hosts: ${data.total_hosts}, Utilizables: ${data.hosts_utilizables}, Máscara: ${data.mascara};
+                ? `Error: ${data.error}` 
+                : `Total Hosts: ${data.total_hosts}, Utilizables: ${data.hosts_utilizables}, Máscara: ${data.mascara}`;
         }
 
         async function determinarPrefijo() {
             let num_hosts = document.getElementById("num_hosts").value;
-            let response = await fetch(${API_URL}/determinar_prefijo, {
+            let response = await fetch(`${API_URL}/determinar_prefijo`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ num_hosts })
             });
             let data = await response.json();
             document.getElementById("resultado").innerText = data.error 
-                ? Error: ${data.error} 
-                : Prefijo Necesario: /${data.prefijo}, Máscara: ${data.mascara};
+                ? `Error: ${data.error}` 
+                : `Prefijo Necesario: /${data.prefijo}, Máscara: ${data.mascara}`;
         }
 
         async function calcularRango() {
             let direccion = document.getElementById("direccion").value;
             let prefijo = document.getElementById("prefijo_rango").value;
-            let response = await fetch(${API_URL}/calcular_rango, {
+            let response = await fetch(`${API_URL}/calcular_rango`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ direccion, prefijo })
             });
             let data = await response.json();
             document.getElementById("resultado").innerText = data.error 
-                ? Error: ${data.error} 
-                : Rango: ${data.red_inicio} - ${data.red_fin};
+                ? `Error: ${data.error}` 
+                : `Rango: ${data.red_inicio} - ${data.red_fin}`;
         }
     </script>
 </head>
@@ -107,4 +107,3 @@
     </div>
 </body>
 </html>
-

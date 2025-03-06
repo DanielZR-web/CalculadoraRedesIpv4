@@ -1,5 +1,3 @@
-from flask import Flask, request, jsonify, render_template 
-import ipaddress 
 from flask import Flask, request, jsonify, render_template
 import ipaddress
 from flask_cors import CORS
@@ -9,7 +7,7 @@ CORS(app)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
 @app.route("/calcular_red", methods=["POST"])
 def calcular_red():
@@ -61,26 +59,27 @@ def calcular_rango():
 def calcular_vlsm():
     data = request.json
     try:
-        red_base = data.get("red_base")
+        direccion_base = data.get("direccion")
         subredes = sorted([int(h) for h in data.get("subredes")], reverse=True)
         
-        resultados = []
-        ip_actual = ipaddress.IPv4Network(f'{red_base}/32', strict=False).network_address
-        
+        subredes_resultado = []
+        red_actual = ipaddress.IPv4Network(f'{direccion_base}/32', strict=False)
+
         for num_hosts in subredes:
             for i in range(32, 0, -1):
-                red = ipaddress.IPv4Network(f'{ip_actual}/{i}', strict=False)
-                if red.num_addresses - 2 >= num_hosts:
-                    resultados.append({
-                        "subred": str(red.network_address),
-                        "prefijo": i,
-                        "mascara": str(red.netmask),
-                        "rango": f"{red.network_address} - {red.broadcast_address}"
+                subred = ipaddress.IPv4Network(f'{red_actual.network_address}/{i}', strict=False)
+                if subred.num_addresses - 2 >= num_hosts:
+                    subredes_resultado.append({
+                        "direccion_red": str(subred.network_address),
+                        "mascara": str(subred.netmask),
+                        "broadcast": str(subred.broadcast_address),
+                        "total_hosts": subred.num_addresses,
+                        "hosts_utilizables": subred.num_addresses - 2
                     })
-                    ip_actual = red.broadcast_address + 1
+                    red_actual = ipaddress.IPv4Network(f'{subred.broadcast_address + 1}/32', strict=False)
                     break
         
-        return jsonify(resultados)
+        return jsonify({"subredes": subredes_resultado})
     except ValueError:
         return jsonify({"error": "Datos inválidos."}), 400
 

@@ -17,7 +17,7 @@
         h2, h3 {
             color: #333;
         }
-        input, button {
+        input, button, textarea {
             padding: 10px;
             margin: 10px;
             border: 1px solid #ccc;
@@ -42,7 +42,7 @@
         }
     </style>
     <script>
-        const API_URL = "https://calculadoraredesipv4.onrender.com"; // Reemplaza con la URL de tu API en Render
+        const API_URL = "https://tu-api-en-render.com"; // Reemplázalo con la URL correcta
 
         async function calcularRed() {
             let prefijo = document.getElementById("prefijo").value;
@@ -52,9 +52,7 @@
                 body: JSON.stringify({ prefijo })
             });
             let data = await response.json();
-            document.getElementById("resultado").innerText = data.error 
-                ? `Error: ${data.error}` 
-                : `Total Hosts: ${data.total_hosts}, Utilizables: ${data.hosts_utilizables}, Máscara: ${data.mascara}`;
+            document.getElementById("resultado").innerText = `Total Hosts: ${data.total_hosts}, Utilizables: ${data.hosts_utilizables}, Máscara: ${data.mascara}`;
         }
 
         async function determinarPrefijo() {
@@ -65,9 +63,7 @@
                 body: JSON.stringify({ num_hosts })
             });
             let data = await response.json();
-            document.getElementById("resultado").innerText = data.error 
-                ? `Error: ${data.error}` 
-                : `Prefijo Necesario: /${data.prefijo}, Máscara: ${data.mascara}`;
+            document.getElementById("resultado").innerText = `Prefijo Necesario: /${data.prefijo}, Máscara: ${data.mascara}`;
         }
 
         async function calcularRango() {
@@ -79,9 +75,35 @@
                 body: JSON.stringify({ direccion, prefijo })
             });
             let data = await response.json();
-            document.getElementById("resultado").innerText = data.error 
-                ? `Error: ${data.error}` 
-                : `Rango: ${data.red_inicio} - ${data.red_fin}`;
+            document.getElementById("resultado").innerText = `Rango: ${data.red_inicio} - ${data.red_fin}`;
+        }
+
+        async function calcularVLSM() {
+            let direccion = document.getElementById("direccion_vlsm").value;
+            let subredes = document.getElementById("subredes").value.split(',').map(num => parseInt(num.trim())).filter(num => !isNaN(num));
+
+            if (subredes.length === 0) {
+                document.getElementById("resultado").innerText = "Error: Ingresa al menos una cantidad de hosts.";
+                return;
+            }
+
+            let response = await fetch(`${API_URL}/calcular_vlsm`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ direccion, subredes })
+            });
+            let data = await response.json();
+
+            if (data.error) {
+                document.getElementById("resultado").innerText = `Error: ${data.error}`;
+            } else {
+                let resultadoHTML = "<h3>Subredes calculadas:</h3><ul>";
+                data.subredes_asignadas.forEach(subred => {
+                    resultadoHTML += `<li>Red: ${subred.subred} | Prefijo: ${subred.prefijo} | Máscara: ${subred.mascara} | Hosts Utilizables: ${subred.hosts_utilizables}</li>`;
+                });
+                resultadoHTML += "</ul>";
+                document.getElementById("resultado").innerHTML = resultadoHTML;
+            }
         }
     </script>
 </head>
@@ -101,6 +123,11 @@
         <input type="text" id="direccion" placeholder="Ejemplo: 192.168.1.0">
         <input type="number" id="prefijo_rango" placeholder="Ejemplo: 24">
         <button onclick="calcularRango()">Calcular</button>
+
+        <h3>4. Subneteo VLSM</h3>
+        <input type="text" id="direccion_vlsm" placeholder="Dirección de red (Ej: 192.168.1.0)">
+        <textarea id="subredes" placeholder="Lista de subredes separadas por comas (Ej: 50,30,20)"></textarea>
+        <button onclick="calcularVLSM()">Calcular VLSM</button>
         
         <h3>Resultado:</h3>
         <p id="resultado"></p>

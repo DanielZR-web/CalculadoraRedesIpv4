@@ -42,43 +42,69 @@
         }
     </style>
     <script>
-        const API_URL = "https://calculadoraredesipv4.onrender.com"; // Reemplaza con la URL de tu API
+        const API_URL = "https://calculadoraredesipv4.onrender.com"; // Reemplaza con la URL de tu API en Render
 
-        async function calcularVLSM() {
-            let red_base = document.getElementById("red_base").value;
-            let hosts = document.getElementById("hosts").value.split(",").map(h => h.trim());
-
-            let response = await fetch(`${API_URL}/calcular_vlsm`, {
+        async function calcularRed() {
+            let prefijo = document.getElementById("prefijo").value;
+            let response = await fetch(${API_URL}/calcular_red, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ red_base, hosts })
+                body: JSON.stringify({ prefijo })
             });
             let data = await response.json();
+            document.getElementById("resultado").innerText = data.error 
+                ? Error: ${data.error} 
+                : Total Hosts: ${data.total_hosts}, Utilizables: ${data.hosts_utilizables}, Máscara: ${data.mascara};
+        }
 
-            let resultado = document.getElementById("resultado_vlsm");
-            resultado.innerHTML = "";
-            
-            if (data.error) {
-                resultado.innerText = `Error: ${data.error}`;
-            } else {
-                data.forEach(subred => {
-                    resultado.innerHTML += `<p>Subred: ${subred.subred} - Máscara: ${subred.mascara} - Rango: ${subred.rango} - Hosts utilizables: ${subred.hosts_utilizables}</p>`;
-                });
-            }
+        async function determinarPrefijo() {
+            let num_hosts = document.getElementById("num_hosts").value;
+            let response = await fetch(${API_URL}/determinar_prefijo, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ num_hosts })
+            });
+            let data = await response.json();
+            document.getElementById("resultado").innerText = data.error 
+                ? Error: ${data.error} 
+                : Prefijo Necesario: /${data.prefijo}, Máscara: ${data.mascara};
+        }
+
+        async function calcularRango() {
+            let direccion = document.getElementById("direccion").value;
+            let prefijo = document.getElementById("prefijo_rango").value;
+            let response = await fetch(${API_URL}/calcular_rango, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ direccion, prefijo })
+            });
+            let data = await response.json();
+            document.getElementById("resultado").innerText = data.error 
+                ? Error: ${data.error} 
+                : Rango: ${data.red_inicio} - ${data.red_fin};
         }
     </script>
 </head>
 <body>
     <div class="container">
         <h2>Calculadora de Redes IPv4</h2>
-
-        <h3>4. Cálculo de VLSM</h3>
-        <input type="text" id="red_base" placeholder="Ejemplo: 192.168.1.0">
-        <input type="text" id="hosts" placeholder="Ejemplo: 50, 30, 10">
-        <button onclick="calcularVLSM()">Calcular VLSM</button>
         
-        <h3>Resultado VLSM:</h3>
-        <div id="resultado_vlsm"></div>
+        <h3>1. Ver tamaño de una red</h3>
+        <input type="number" id="prefijo" placeholder="Ejemplo: 24">
+        <button onclick="calcularRed()">Calcular</button>
+        
+        <h3>2. Crear una red con número de hosts</h3>
+        <input type="number" id="num_hosts" placeholder="Ejemplo: 500">
+        <button onclick="determinarPrefijo()">Calcular</button>
+        
+        <h3>3. Calcular rango de una red</h3>
+        <input type="text" id="direccion" placeholder="Ejemplo: 192.168.1.0">
+        <input type="number" id="prefijo_rango" placeholder="Ejemplo: 24">
+        <button onclick="calcularRango()">Calcular</button>
+        
+        <h3>Resultado:</h3>
+        <p id="resultado"></p>
     </div>
 </body>
 </html>
+

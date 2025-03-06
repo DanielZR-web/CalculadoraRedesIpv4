@@ -9,7 +9,7 @@ CORS(app)  # Permitir peticiones desde cualquier origen
 
 @app.route("/")
 def serve_index():
-    return send_from_directory("static", "index.html")
+    return render_template("index.html")
 
 
 @app.route("/calcular_red", methods=["POST"])

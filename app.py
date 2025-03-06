@@ -1,15 +1,21 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import ipaddress
+import os
 from flask_cors import CORS
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", static_url_path="/")
 CORS(app)  # Permitir peticiones desde cualquier origen
 
-# Función para calcular detalles de una red según su prefijo
+
+@app.route("/")
+def serve_index():
+    return send_from_directory("static", "index.html")
+
+
 @app.route("/calcular_red", methods=["POST"])
 def calcular_red():
+    data = request.json
     try:
-        data = request.json
         prefijo = int(data.get("prefijo"))
         red = ipaddress.IPv4Network(f'0.0.0.0/{prefijo}', strict=False)
         total_hosts = red.num_addresses
@@ -22,11 +28,11 @@ def calcular_red():
     except ValueError:
         return jsonify({"error": "Prefijo inválido."}), 400
 
-# Función para determinar el prefijo necesario para un número de hosts
+
 @app.route("/determinar_prefijo", methods=["POST"])
 def determinar_prefijo():
+    data = request.json
     try:
-        data = request.json
         num_hosts = int(data.get("num_hosts"))
         for i in range(32, 0, -1):
             red = ipaddress.IPv4Network(f'0.0.0.0/{i}', strict=False)
@@ -39,11 +45,11 @@ def determinar_prefijo():
     except ValueError:
         return jsonify({"error": "Número inválido."}), 400
 
-# Función para calcular el rango de una red
+
 @app.route("/calcular_rango", methods=["POST"])
 def calcular_rango():
+    data = request.json
     try:
-        data = request.json
         direccion = data.get("direccion")
         prefijo = int(data.get("prefijo"))
         red = ipaddress.IPv4Network(f'{direccion}/{prefijo}', strict=False)
@@ -54,45 +60,35 @@ def calcular_rango():
     except ValueError:
         return jsonify({"error": "Dirección o prefijo inválido."}), 400
 
-# Nueva función para calcular subredes con VLSM
+
 @app.route("/calcular_vlsm", methods=["POST"])
 def calcular_vlsm():
+    data = request.json
     try:
-        data = request.json
         direccion = data.get("direccion")
-        subredes = data.get("subredes")
-
-        if not direccion or not subredes:
-            return jsonify({"error": "Faltan datos en la solicitud"}), 400
+        subredes = sorted(data.get("subredes", []), reverse=True)
         
-        subredes = sorted(subredes, reverse=True)  # Ordenar de mayor a menor
-        vlsm_resultado = []
+        base_red = ipaddress.IPv4Network(f'{direccion}/32', strict=False)
+        resultado = []
+        actual_red = base_red.network_address
 
-        red_actual = ipaddress.IPv4Network(f"{direccion}/32", strict=False)
-
-        for subred in subredes:
-            for prefijo in range(32, 0, -1):
-                red_temp = ipaddress.IPv4Network(f"{red_actual.network_address}/{prefijo}", strict=False)
-                if red_temp.num_addresses - 2 >= subred:
-                    vlsm_resultado.append({
-                        "subred": str(red_temp.network_address),
-                        "prefijo": f"/{prefijo}",
-                        "mascara": str(red_temp.netmask),
-                        "hosts_utilizables": red_temp.num_addresses - 2
+        for hosts in subredes:
+            for i in range(32, 0, -1):
+                if (2 ** (32 - i)) - 2 >= hosts:
+                    subred = ipaddress.IPv4Network(f'{actual_red}/{i}', strict=False)
+                    resultado.append({
+                        "subred": str(subred.network_address),
+                        "prefijo": i,
+                        "mascara": str(subred.netmask),
+                        "hosts_utilizables": (2 ** (32 - i)) - 2
                     })
-                    red_actual = list(red_temp.hosts())[-1] + 1  # Avanzar a la siguiente dirección
+                    actual_red = subred.broadcast_address + 1
                     break
 
-        return jsonify({"subredes_asignadas": vlsm_resultado})
+        return jsonify({"subredes_asignadas": resultado})
+    except ValueError:
+        return jsonify({"error": "Datos inválidos."}), 400
 
-    except Exception as e:
-        print(f"Error en calcular_vlsm: {e}")  # Muestra el error en la terminal
-        return jsonify({"error": str(e)}), 500
-
-# Ruta para servir la página HTML principal
-@app.route("/")
-def home():
-    return "<h1>Calculadora de Redes IPv4</h1><p>API funcionando correctamente.</p>"
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000, debug=True)
+    app.run(host="0.0.0.0", port=10000)
